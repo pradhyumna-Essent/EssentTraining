@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { ValidationError } from 'yup';
 import Accounts from './accounts';
-import { Product, Products } from 'src/Interface/products';
+import { Product, Products } from '../Interface/products';
 
 const addProducts = (req: Request, res: Response) => {
   try {
@@ -42,7 +42,11 @@ const addProducts = (req: Request, res: Response) => {
     } else {
       // Unexpected error
       console.error(error);
-      res.status(500).json('Unable to process your request at this movement. Please try again later.');
+      res
+        .status(500)
+        .json(
+          'Unable to process your request at this movement. Please try again later.'
+        );
     }
   }
 };
@@ -67,7 +71,11 @@ const getAllProducts = (req: Request, res: Response) => {
   } catch (error) {
     // Unexpected error
     console.error(error);
-    res.status(500).json('Unable to process your request at this movement. Please try again later.');
+    res
+      .status(500)
+      .json(
+        'Unable to process your request at this movement. Please try again later.'
+      );
   }
 };
 
@@ -99,16 +107,13 @@ const getproductById = (req: Request, res: Response) => {
   } catch (error) {
     // Unexpected error
     console.error(error);
-    res.status(500).json('Unable to process your request at this movement. Please try again later.');
-
+    res
+      .status(500)
+      .json(
+        'Unable to process your request at this movement. Please try again later.'
+      );
   }
 };
-
-const router = express.Router();
-
-router.post('/products', addProducts);
-router.get('/products', getAllProducts);
-router.get('/products/:productId', getproductById);
 
 export default {
   addProducts,
