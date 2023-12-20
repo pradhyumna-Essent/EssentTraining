@@ -1,12 +1,16 @@
-import express, { Request, Response , } from 'express';
+import { Request, Response } from 'express';
 
 import { v4 as uuidv4 } from 'uuid';
 
 import { Products, Product } from '../Interface/products';
-import { Deposit, Account, AccontResponse, Purchases } from '../Interface/accounts';
+import {
+  Deposit,
+  Account,
+  AccontResponse,
+  Purchases,
+} from '../Interface/accounts';
 
 let Accounts: Account[] = [];
-
 
 const createAccount = (req: Request, res: Response) => {
   try {
@@ -18,10 +22,12 @@ const createAccount = (req: Request, res: Response) => {
     const balance = 0;
     Accounts.push({ id, name, balance });
     return res.status(201).json({ id, name, balance });
-
   } catch (error) {
-
-    return res.status(500).json('Unable to process your request at this movement. Please try again later.');
+    return res
+      .status(500)
+      .json(
+        'Unable to process your request at this movement. Please try again later.'
+      );
   }
 };
 
@@ -137,8 +143,10 @@ const registerDeposit = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-
-const getSoldProductCount = (productId: string, simulationDay: number): number => {
+const getSoldProductCount = (
+  productId: string,
+  simulationDay: number
+): number => {
   // Check if the Accounts array is empty
   if (Accounts.length === 0) {
     return 0;
@@ -149,7 +157,10 @@ const getSoldProductCount = (productId: string, simulationDay: number): number =
   Accounts.forEach((account) => {
     if (account.purchaseDetails !== undefined) {
       account.purchaseDetails.forEach((purchase) => {
-        if (purchase.productId === productId && purchase.simulatedDayPurchase < simulationDay) {
+        if (
+          purchase.productId === productId &&
+          purchase.simulatedDayPurchase < simulationDay
+        ) {
           numberOfProductsSold += 1;
         }
       });
@@ -201,13 +212,18 @@ const validateFunds = async (
     if (account.purchaseDetails !== undefined) {
       amountPurchased = account.purchaseDetails.reduce(
         (total, purchaseDtl) =>
-          total + Products.find((Product: { id: string }) => Product.id === purchaseDtl.productId).price,
+          total +
+          Products.find(
+            (Product: { id: string }) => Product.id === purchaseDtl.productId
+          ).price,
         0
       );
     }
 
     // Get the product price
-    const productPrice = Products.find((product: { id: string }) => product.id === productId).price;
+    const productPrice = Products.find(
+      (product: { id: string }) => product.id === productId
+    ).price;
 
     // Return true if the account has enough funds, false otherwise
     return productPrice <= depositBalanceOnPurchaseDay - amountPurchased;
@@ -219,7 +235,10 @@ const validateFunds = async (
 };
 
 // Legal Purchase check
-const checkLegalPurchase = (accountId: string, simulationDay: number): boolean => {
+const checkLegalPurchase = (
+  accountId: string,
+  simulationDay: number
+): boolean => {
   try {
     // Get the account
     const account = Accounts.find((Account) => Account.id === accountId);
@@ -231,7 +250,8 @@ const checkLegalPurchase = (accountId: string, simulationDay: number): boolean =
 
     // Sort the purchase details based on time
     const purchaseDtls = account.purchaseDetails.sort(
-      (a: Purchases, b: Purchases) => b.SimulatedDayPurchase - a.SimulatedDayPurchase
+      (a: Purchases, b: Purchases) =>
+        b.SimulatedDayPurchase - a.SimulatedDayPurchase
     );
 
     // Check if the most recent purchase was made on the same day or before the
@@ -261,7 +281,9 @@ const validateInputPurchase = async (req: Request): Promise<number> => {
     }
 
     // Validate the account
-    const account = Accounts.find((account) => account.id === req.params.accountId);
+    const account = Accounts.find(
+      (account) => account.id === req.params.accountId
+    );
     if (!account) {
       return 400;
     }
@@ -272,7 +294,13 @@ const validateInputPurchase = async (req: Request): Promise<number> => {
     }
 
     // Validate the funds
-    if (!await validateFunds(account.id, purchaseSimulationDay, purchaseProduct.id)) {
+    if (
+      !(await validateFunds(
+        account.id,
+        purchaseSimulationDay,
+        purchaseProduct.id
+      ))
+    ) {
       return 409;
     }
 
@@ -295,11 +323,15 @@ const registerPurchase = async (req: Request, res: Response): Promise<void> => {
     // Validate the purchase input
     const purchaseValidationStatus = await validateInputPurchase(req);
     if (purchaseValidationStatus !== 200) {
-      res.status(purchaseValidationStatus).json({ message: 'Purchase failed. Please check your input and try again.' });
+      res.status(purchaseValidationStatus).json({
+        message: 'Purchase failed. Please check your input and try again.',
+      });
     }
 
     // Get the account
-    const account = Accounts.find((account) => account.id === req.params.accountId);
+    const account = Accounts.find(
+      (account) => account.id === req.params.accountId
+    );
 
     // Create a new purchase detail
     const purchaseDetails: Purchases = {
@@ -321,11 +353,12 @@ const registerPurchase = async (req: Request, res: Response): Promise<void> => {
   } catch (error) {
     // Handle the error
     console.error('Error registering purchase:', error);
-    res.status(500).json({ message: 'Unable to process your request at this movement. Please try again later.' });
+    res.status(500).json({
+      message:
+        'Unable to process your request at this movement. Please try again later.',
+    });
   }
 };
-
-const router = express.Router();
 
 export default {
   createAccount,
@@ -335,11 +368,4 @@ export default {
   registerPurchase,
   getSoldProductCount,
   Accounts,
-  router,
 };
-
-router.post('/accounts', createAccount);
-router.get('/accounts', getAllAccounts);
-router.get('/accounts/:accountId', getAccount);
-router.post('/accounts/:accountId/deposits', registerDeposit);
-router.post('/accounts/:accountId/purchases', registerPurchase);

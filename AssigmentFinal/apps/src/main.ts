@@ -1,7 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import accountRouter from './controllers/accounts';
-import productRouter from './controllers/products';
+import Router from './routes/routeFile';
 
 const app = express();
 
@@ -12,8 +11,7 @@ app.set('Content-Type', 'application/json');
 app.use(bodyParser.json({ limit: '50mb', type: 'application/json' }));
 
 // Set the routes
-app.use('/', accountRouter);
-app.use('/', productRouter);
+app.use('/', Router);
 
 // Define a default route
 app.get('/', (req, res) => {
